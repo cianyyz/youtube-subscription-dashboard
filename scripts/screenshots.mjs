@@ -1,0 +1,14 @@
+import {chromium} from '@playwright/test';
+import {mkdir} from 'node:fs/promises';
+import assert from 'node:assert/strict';
+const browser=await chromium.launch({executablePath:process.env.CHROME_PATH||'/usr/bin/google-chrome',headless:true,args:['--no-sandbox']});
+const page=await browser.newPage({viewport:{width:1440,height:1100}});
+await page.goto('http://127.0.0.1:5173');
+await page.locator('.video-card').first().waitFor();
+await page.waitForFunction(()=>[...document.querySelectorAll('.thumbnail img')].every(i=>i.complete));
+await mkdir('test-results',{recursive:true});
+await page.screenshot({path:'test-results/dashboard-desktop.png',fullPage:true});
+await page.setViewportSize({width:390,height:844});
+assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+await page.screenshot({path:'test-results/dashboard-mobile.png',fullPage:true});
+await browser.close();
